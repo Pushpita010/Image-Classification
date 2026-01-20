@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cat or Dog?</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, #fceabb, #f8b500);
+            text-align: center;
+            padding-top: 40px;
+        }
+
+        h1 {
+            font-size: 48px;
+            margin-bottom: 30px;
+        }
+
+        .upload-box {
+            width: 300px;
+            height: 200px;
+            border: 3px dashed #333;
+            border-radius: 15px;
+            margin: 0 auto 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            background: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;   /* 🔥 THIS is the key */
+            display: none;
+        }
+
+        .upload-text {
+            font-size: 20px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        button {
+            padding: 12px 25px;
+            font-size: 18px;
+            border: none;
+            border-radius: 25px;
+            background-color: #333;
+            color: white;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>🐱 Cat or Dog? 🐶</h1>
+
+<form action="/predict" method="post" enctype="multipart/form-data">
+
+    <label class="upload-box">
+        <span class="upload-text">＋<br>Place your image here</span>
+        <img id="preview">
+        <input type="file" name="image" accept="image/*" required
+               onchange="previewImage(event)">
+    </label>
+
+    <button type="submit">Predict 🪄</button>
+</form>
+
+<script>
+    function previewImage(event) {
+        const img = document.getElementById("preview");
+        img.src = URL.createObjectURL(event.target.files[0]);
+        img.style.display = "block";
+        document.querySelector(".upload-text").style.display = "none";
+    }
+</script>
+
+</body>
+</html>
