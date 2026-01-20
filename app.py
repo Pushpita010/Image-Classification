@@ -7,7 +7,8 @@ import os
 app = Flask(__name__)
 
 # Load trained CNN model
-model = load_model("cat_dog_cnn.h5")
+model_path = os.path.join(os.path.dirname(__file__), "cat_dog_cnn.h5")
+model = load_model(model_path)
 
 # Upload folder
 UPLOAD_FOLDER = "static/uploads"
