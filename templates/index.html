@@ -1,89 +1,179 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
-    <title>Cat or Dog?</title>
-
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        background: linear-gradient(to right, #fceabb, #f8b500);
-        text-align: center;
-        padding-top: 40px;
-      }
-
-      h1 {
-        font-size: 48px;
-        margin-bottom: 30px;
-      }
-
-      .upload-box {
-        width: 300px;
-        height: 200px;
-        border: 3px dashed #333;
-        border-radius: 15px;
-        margin: 0 auto 30px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        background: white;
-        position: relative;
-        overflow: hidden;
-      }
-
-      .upload-box img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover; /* 🔥 THIS is the key */
-        display: none;
-      }
-
-      .upload-text {
-        font-size: 20px;
-      }
-
-      input[type="file"] {
-        display: none;
-      }
-
-      button {
-        padding: 12px 25px;
-        font-size: 18px;
-        border: none;
-        border-radius: 25px;
-        background-color: #333;
-        color: white;
-        cursor: pointer;
-      }
-    </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cat vs Dog Image Classifier</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
   </head>
-
   <body>
-    <h1>🐱 Cat or Dog? 🐶</h1>
+    <div class="container">
+      <header>
+        <h1>🐱 Cat vs Dog Classifier 🐕</h1>
+        <p class="subtitle">ML-powered Image Classification</p>
+      </header>
 
-    <form action="/predict" method="post" enctype="multipart/form-data">
-      <label class="upload-box">
-        <span class="upload-text">＋<br />Place your image here</span>
-        <img id="preview" />
-        <input
-          type="file"
-          name="image"
-          accept="image/*"
-          required
-          onchange="previewImage(event)"
-        />
-      </label>
+      <main>
+        <div class="content-wrapper">
+          <!-- Upload Section -->
+          <section class="upload-section">
+            <h2>Upload Image</h2>
 
-      <button type="submit">Predict 🪄</button>
-    </form>
+            <div class="upload-area" id="uploadArea">
+              <div class="upload-content">
+                <svg
+                  class="upload-icon"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <p class="upload-text">
+                  Drag and drop your image here or click to select
+                </p>
+                <p class="upload-formats">
+                  Supported: PNG, JPG, JPEG, GIF, BMP
+                </p>
+              </div>
+              <input type="file" id="imageInput" accept="image/*" hidden />
+            </div>
 
-    <script>
-      function previewImage(event) {
-        const img = document.getElementById("preview");
-        img.src = URL.createObjectURL(event.target.files[0]);
-        img.style.display = "block";
-        document.querySelector(".upload-text").style.display = "none";
-      }
-    </script>
+            <!-- Image Preview -->
+            <div
+              id="previewContainer"
+              class="preview-container"
+              style="display: none"
+            >
+              <img
+                id="previewImage"
+                src=""
+                alt="Preview"
+                class="preview-image"
+              />
+              <button class="btn-remove" onclick="removeImage()">
+                Remove Image
+              </button>
+            </div>
+          </section>
+
+          <!-- Model Selection -->
+          <section class="model-section">
+            <h2>Select Model</h2>
+            <div class="model-dropdown">
+              <select id="modelSelect">
+                <option value="">Loading models...</option>
+              </select>
+            </div>
+          </section>
+
+          <!-- Classify Button -->
+          <section class="button-section">
+            <button
+              id="classifyBtn"
+              class="btn-classify"
+              onclick="classifyImage()"
+              disabled
+            >
+              <span>🎯 Classify Image</span>
+            </button>
+            <p id="loadingText" class="loading-text" style="display: none">
+              <span class="spinner"></span> Processing...
+            </p>
+          </section>
+
+          <!-- Results Section -->
+          <section
+            id="resultsSection"
+            class="results-section"
+            style="display: none"
+          >
+            <h2>Classification Result</h2>
+
+            <div class="result-card">
+              <div class="result-main">
+                <span id="resultClass" class="result-class"></span>
+                <p id="resultText" class="result-text"></p>
+              </div>
+
+              <div class="model-info">
+                <p><strong>Model Used:</strong> <span id="usedModel"></span></p>
+              </div>
+
+              <!-- Probabilities -->
+              <div
+                id="probabilitiesSection"
+                class="probabilities-section"
+                style="display: none"
+              >
+                <h3>Confidence Scores</h3>
+                <div class="probability-bars">
+                  <div class="probability-bar">
+                    <label>Cat Probability</label>
+                    <div class="bar-container">
+                      <div class="bar-fill cat-bar" id="catProb"></div>
+                    </div>
+                    <span id="catProbText">0%</span>
+                  </div>
+                  <div class="probability-bar">
+                    <label>Dog Probability</label>
+                    <div class="bar-container">
+                      <div class="bar-fill dog-bar" id="dogProb"></div>
+                    </div>
+                    <span id="dogProbText">0%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="button-group">
+              <button class="btn-again" onclick="resetForm()">
+                Classify Another Image
+              </button>
+              <button class="btn-download" onclick="downloadResult()">
+                Download Result
+              </button>
+            </div>
+          </section>
+
+          <!-- Error Section -->
+          <div id="errorSection" class="error-section" style="display: none">
+            <div class="error-message">
+              <span class="error-icon">⚠️</span>
+              <p id="errorText"></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Info Section -->
+        <aside class="info-section">
+          <h3>ℹ️ About This Project</h3>
+          <div class="info-content">
+            <p><strong>Models Used:</strong></p>
+            <ul>
+              <li>SVM (Support Vector Machine)</li>
+              <li>Random Forest</li>
+              <li>Logistic Regression</li>
+              <li>K-Nearest Neighbors (KNN)</li>
+            </ul>
+            <p><strong>Dataset:</strong> Kaggle Dogs vs Cats Dataset</p>
+            <p><strong>Image Size:</strong> 64×64 pixels</p>
+            <p><strong>Features:</strong> Grayscale pixel values</p>
+          </div>
+        </aside>
+      </main>
+
+      <footer>
+        <p>&copy; 2024 Cat vs Dog Classifier | ML Project</p>
+      </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
   </body>
 </html>
